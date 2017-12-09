@@ -3,7 +3,7 @@ import sys
 from setuptools import setup, find_packages
 from yu import version
 
-long_description = open('README.md').read()
+long_description = open('README.md', encoding='utf-8').read()
 
 if 'upload' in sys.argv:
     import pypandoc

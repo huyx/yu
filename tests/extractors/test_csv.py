@@ -1,18 +1,18 @@
+import datetime
 import unittest
 
-import datetime
+from yu.extractors import csv as ce
 
-from yu.extractors.csv import CSVExtractor, StringField, SkipField, IntegerField, FloatField, DateField, PassField
 
 class TestCSVExtractor(unittest.TestCase):
     def setUp(self):
         fields = [
-            StringField(min_length=2, max_length=4), # 姓名
-            SkipField(), # 民族
-            IntegerField(max_value=150), # 年龄
-            FloatField(min_value=5, max_value=200), # 体重
-            DateField(), # 生日
-            PassField(), # 备注
+            ce.StringField(min_length=2, max_length=4),  # 姓名
+            ce.SkipField(),  # 民族
+            ce.IntegerField(max_value=150),  # 年龄
+            ce.FloatField(min_value=5, max_value=200),  # 体重
+            ce.DateField(),  # 生日
+            ce.PassField(),  # 备注
         ]
 
         rows = [
@@ -20,7 +20,7 @@ class TestCSVExtractor(unittest.TestCase):
             ['完颜阿骨打', '女真', '55', '805', '1068-8-01', '金朝开国皇帝'],
         ]
 
-        self.csv_extractor = CSVExtractor(iter(rows), fields=fields)
+        self.csv_extractor = ce.CSVExtractor(iter(rows), fields=fields)
 
     def test_csv_extractor(self):
         rows = list(self.csv_extractor)

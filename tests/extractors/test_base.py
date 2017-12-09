@@ -1,61 +1,60 @@
 import datetime
 import unittest
 
-from yu.extractors.base import PassField, StringField, FieldExtractor, IntegerField, FloatField, DateField, \
-    RowExtractor, SkipField
+from yu.extractors import base as be
 from yu.validators import ValidationError
 
 
 class TestFieldExtractor(unittest.TestCase):
     def test_extractor_with_default(self):
-        extractor = FieldExtractor(default='DEFAULT', converter=int)
+        extractor = be.FieldExtractor(default='DEFAULT', converter=int)
         self.assertEqual(extractor.extract('N/A'), 'DEFAULT')
 
 
 class TestPassField(unittest.TestCase):
     def test_pass(self):
-        field = PassField()
+        field = be.PassField()
         self.assertEqual(field.extract('pass through'), 'pass through')
 
 
 class TestStringField(unittest.TestCase):
     def test_normal_value(self):
-        field = StringField()
+        field = be.StringField()
         self.assertEqual(field.extract(' strip '), 'strip')
         self.assertEqual(field.extract('　全角　空格　'), '全角　空格')
 
     def test_no_strip(self):
-        field = StringField(strip=False)
+        field = be.StringField(strip=False)
         self.assertEqual(field.extract(' strip '), ' strip ')
 
     def test_spaceless(self):
-        field = StringField(spaceless=True)
+        field = be.StringField(spaceless=True)
         self.assertEqual(field.extract(' space less '), 'spaceless')
         self.assertEqual(field.extract('　全角　空格　'), '全角空格')
 
     def test_length_validate(self):
-        field = StringField(min_length=5)
+        field = be.StringField(min_length=5)
         with self.assertRaises(ValidationError):
             field.extract('ABC')
 
 
 class TestIntegerField(unittest.TestCase):
     def test_normal_value(self):
-        field = IntegerField()
+        field = be.IntegerField()
         self.assertEqual(field.extract('100'), 100)
 
     def test_invalid_value(self):
-        field = IntegerField()
+        field = be.IntegerField()
         with self.assertRaises(ValueError):
             field.extract('N/A')
 
     def test_default_value(self):
-        field = FloatField(default=8)
+        field = be.FloatField(default=8)
         self.assertAlmostEqual(field.extract('N/A'), 8)
 
     def test_user_eval(self):
         # 不使用 eval
-        field = IntegerField()
+        field = be.IntegerField()
 
         # 不能处理十六进制、八进制、二进制等
         with self.assertRaises(ValueError):
@@ -66,7 +65,7 @@ class TestIntegerField(unittest.TestCase):
             field.extract('100.5')
 
         # 使用 eval
-        field = IntegerField(use_eval=True)
+        field = be.IntegerField(use_eval=True)
 
         # 能处理十六进制、八进制、二进制等
         self.assertEqual(field.extract('0x100'), 0x100)
@@ -79,22 +78,22 @@ class TestIntegerField(unittest.TestCase):
 
 class TestFloatField(unittest.TestCase):
     def test_normal_value(self):
-        field = FloatField()
+        field = be.FloatField()
         self.assertEqual(field.extract('3.1415926'), 3.1415926)
 
     def test_invalid_value(self):
-        field = FloatField()
+        field = be.FloatField()
         with self.assertRaises(ValueError):
             field.extract('N/A')
 
     def test_default_value(self):
-        field = FloatField(default=3.1415926)
+        field = be.FloatField(default=3.1415926)
         self.assertAlmostEqual(field.extract('N/A'), 3.1415926)
 
 
 class TestDateField(unittest.TestCase):
     def test_normal_value(self):
-        field = DateField()
+        field = be.DateField()
         expected_date = datetime.date(2017, 12, 9)
         self.assertEqual(field.extract('2017-12-09'), expected_date)
         self.assertEqual(field.extract('2017/12/09'), expected_date)
@@ -102,7 +101,7 @@ class TestDateField(unittest.TestCase):
         self.assertEqual(field.extract('20171209'), expected_date)
 
     def test_invalid_value(self):
-        field = DateField()
+        field = be.DateField()
 
         with self.assertRaises(ValueError):
             field.extract('2017-13-09')
@@ -113,7 +112,7 @@ class TestDateField(unittest.TestCase):
     def test_out_of_range(self):
         start_date = datetime.date(2017, 1, 1)
         end_date = datetime.date(2017, 12, 31)
-        field = DateField(start_date=start_date, end_date=end_date)
+        field = be.DateField(start_date=start_date, end_date=end_date)
 
         with self.assertRaises(ValidationError):
             field.extract('2016-12-09')
@@ -125,14 +124,14 @@ class TestDateField(unittest.TestCase):
 class TestRowExtractor(unittest.TestCase):
     def setUp(self):
         fields = [
-            StringField(min_length=2, max_length=4), # 姓名
-            SkipField(), # 民族
-            IntegerField(max_value=150), # 年龄
-            FloatField(min_value=5, max_value=200), # 体重
-            DateField(), # 生日
-            PassField(), # 备注
+            be.StringField(min_length=2, max_length=4),  # 姓名
+            be.SkipField(),  # 民族
+            be.IntegerField(max_value=150),  # 年龄
+            be.FloatField(min_value=5, max_value=200),  # 体重
+            be.DateField(),  # 生日
+            be.PassField(),  # 备注
         ]
-        self.row_extractor = RowExtractor(fields=fields)
+        self.row_extractor = be.RowExtractor(fields=fields)
 
     def test_normal_row(self):
         row = ['岳飞', '汉', '39', '72.5', '1103-03-24', '南宋抗金名将']
