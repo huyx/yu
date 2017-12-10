@@ -1,19 +1,19 @@
-from .base import *
+from . import base
+
+SkipField = base.SkipField
+PassField = base.PassField
+StringField = base.StringField
+IntegerField = base.IntegerField
+FloatField = base.FloatField
+DateField = base.DateField
+RowExtractor = base.RowExtractor
 
 
-class CSVExtractor:
-    """CSV 数据提取器"""
-
-    fields: list = None
-
-    def __init__(self, reader, *, fields=None, default=None):
-        self.reader = reader
-        fields = fields or self.fields
-        self.row_extractor = RowExtractor(fields=fields, default=default)
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        row = next(self.reader)
-        return self.row_extractor.extract(row)
+def extract(reader, fields=None, default=None, headers=0, skip_headers=True):
+    row_extractor = RowExtractor(fields=fields, default=default)
+    for row in reader:
+        if headers:
+            headers -= 1
+            if not skip_headers:
+                yield row
+        yield row_extractor.extract(row)

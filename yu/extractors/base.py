@@ -16,31 +16,29 @@ class FieldExtractor:
         self.validator = validator
 
     def extract(self, value):
-        converter = self.converter or self.convert
-
         if self.default is NOTSET:
             # 如果没有设置 default，则先转换然后进行有效性检查
-            value = converter(value)
+            value = self.convert(value)
             self.validator(value)
             return value
 
         # 如果设置了 default，则在数据转换异常时返回 default
         try:
-            return converter(value)
+            return self.convert(value)
         except Exception as err:
             self.error = err
             return self.default
 
     def convert(self, value):
+        if self.converter:
+            return self.converter(value)
         raise NotImplementedError
 
 
-# noinspection PyAbstractClass
 class SkipField(FieldExtractor):
     """跳过"""
 
 
-# noinspection PyAbstractClass
 class PassField(FieldExtractor):
     """PASS, 不做转换"""
 
@@ -67,12 +65,15 @@ class StringField(FieldExtractor):
 class IntegerField(FieldExtractor):
     def __init__(self, default=NOTSET, min_value=None, max_value=None, use_eval=False):
         validator = ValueRangeValidator(min_value, max_value)
-        converter = None if use_eval else int
-        super().__init__(default, converter, validator)
+        super().__init__(default, validator=validator)
+        self.use_eval = use_eval
 
     def convert(self, value):
-        value = literal_eval(value)
-        if not isinstance(value, int):
+        if self.use_eval:
+            value = literal_eval(value)
+            if not isinstance(value, int):
+                value = int(value)
+        else:
             value = int(value)
         return value
 
@@ -122,10 +123,14 @@ class RowExtractor:
         for col, (field, value) in enumerate(zip(self.fields, row)):
             if isinstance(field, SkipField):
                 continue
+
             value = self.extract_field(field, value)
             result.append(value)
+
+            # 保存并清除 field 中的错误
             if field.error:
                 errors.append((col, field.error))
+                field.error = None
 
         return result, errors
 

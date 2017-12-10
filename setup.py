@@ -13,6 +13,7 @@ if 'upload' in sys.argv:
 setup(
     name='yu',
     version=version,
+    url='https://github.com/huyx/yu',
     packages=find_packages(exclude=['tests']),
     description="pYthon Utilities.",
     long_description=long_description,

@@ -22,7 +22,7 @@ $ pip install yu
 
 ### 示例
 
-CSVExtractor 用法:
+csv.extract 的用法:
 
 ```python
 import csv
@@ -39,11 +39,31 @@ fields = [
 ]
 
 
-with open('persons.csv') as fp:
+with open('data/person.csv') as fp:
     reader = csv.reader(fp)
-    extractor = ce.CSVExtractor(reader, fields=fields)
-    for row in extractor:
+    for row in ce.extract(reader, fields=fields):
         print(row)
+```
+
+### excel.extract 的用法
+
+```python
+import xlrd
+from yu.extractors import excel as ee
+
+fields = [
+    ee.StringField(min_length=2, max_length=4),  # 姓名
+    ee.SkipField(),  # 民族
+    ee.IntegerField(max_value=150),  # 年龄
+    ee.FloatField(min_value=5, max_value=200),  # 体重
+    ee.DateField(),  # 生日
+    ee.PassField(),  # 备注
+]
+
+book = xlrd.open_workbook('data/person.xlsx')
+sheet = book.sheet_by_name('person')
+for row in ee.extract(sheet, fields=fields):
+    print(row)
 ```
 
 ## utils - 其他工具
@@ -74,3 +94,13 @@ class Green(Color):
 print(Red)
 print(Green)
 ```
+
+## 修改记录
+
+v0.2.0
+
+* 2017-12-10 添加 yu.extractors.excel，处理 Excel 文件的数据提取
+
+v0.1.1
+
+* 2017-12-09 添加 yu.extractors.csv, 处理 CSV 文件的数据提取

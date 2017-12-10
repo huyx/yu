@@ -52,8 +52,8 @@ class TestIntegerField(unittest.TestCase):
         field = be.FloatField(default=8)
         self.assertAlmostEqual(field.extract('N/A'), 8)
 
-    def test_user_eval(self):
-        # 不使用 eval
+    def test_without_use_eval(self):
+        """use_eval 为 False"""
         field = be.IntegerField()
 
         # 不能处理十六进制、八进制、二进制等
@@ -64,7 +64,7 @@ class TestIntegerField(unittest.TestCase):
         with self.assertRaises(ValueError):
             field.extract('100.5')
 
-        # 使用 eval
+    def test_use_eval(self):
         field = be.IntegerField(use_eval=True)
 
         # 能处理十六进制、八进制、二进制等
