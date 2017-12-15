@@ -14,7 +14,13 @@ setup(
     name='yu',
     version=version,
     url='https://github.com/huyx/yu',
-    packages=find_packages(exclude=['tests']),
     description="pYthon Utilities.",
     long_description=long_description,
+    packages=find_packages(exclude=['tests']),
+    classifiers=[
+        'Development Status :: 3 - Alpha',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python :: 3.6',
+        'Topic :: Utilities',
+    ]
 )

@@ -1,5 +1,5 @@
-from xlrd import xldate_as_datetime
-from xlrd.biffh import XL_CELL_TEXT, XL_CELL_DATE, XL_CELL_NUMBER
+from xlrd import xldate_as_datetime, cellname
+from xlrd.biffh import XL_CELL_TEXT, XL_CELL_DATE, XL_CELL_NUMBER, XL_CELL_EMPTY
 from xlrd.sheet import Cell, Sheet
 
 from . import base
@@ -8,43 +8,47 @@ SkipField = base.SkipField
 PassField = base.PassField
 
 
-class CellMixin:
-    def convert(self, value):
-        if isinstance(value, Cell):
-            return self.convert_cell(value)
-        return value
+class StringField(base.StringField):
+    def convert(self, cell: Cell):
+        if cell.ctype == XL_CELL_TEXT:
+            return super().convert(cell.value)
+        elif cell.ctype == XL_CELL_NUMBER:
+            # 如果是数字，需要猜测一下，结果并不一定可靠
+            if cell.value % 1 == 0.0:
+                # 如果小数部分为零，则认为是整数
+                return str(int(cell.value))
+            else:
+                # 如果小数部分为零，则认为是浮点数
+                return str(cell.value)
+        elif cell.ctype == XL_CELL_EMPTY:
+            return ''
+        else:
+            raise ValueError(f'单元格格式不对: {cell.ctype} - {cell.value}')
 
-    def convert_cell(self, cell):
-        return cell.value
 
-
-class StringField(CellMixin, base.StringField):
-    pass
-
-
-class IntegerField(CellMixin, base.IntegerField):
-    def convert_cell(self, cell):
+class IntegerField(base.IntegerField):
+    def convert(self, cell):
         return int(cell.value)
 
 
-class FloatField(CellMixin, base.FloatField):
-    def convert_cell(self, cell):
+class FloatField(base.FloatField):
+    def convert(self, cell):
         return float(cell.value)
 
 
-class DateField(CellMixin, base.DateField):
+class DateField(base.DateField):
     datemode = None
 
-    def convert_cell(self, cell: Cell, datemode=None):
+    def convert(self, cell: Cell, datemode=None):
         if cell.ctype == XL_CELL_DATE:
             if datemode is None:
                 datemode = self.datemode
             assert datemode is not None, '必须指定 datemode.'
             return xldate_as_datetime(cell.value, self.datemode).date()
         elif cell.ctype == XL_CELL_TEXT:
-            return base.DateField.convert(self, cell.value)
+            return super().convert(cell.value)
         elif cell.ctype == XL_CELL_NUMBER:
-            return base.DateField.convert(self, int(cell.value))
+            return super().convert(int(cell.value))
         else:
             raise ValueError(f'单元格 {cell} ({cell.ctype}, {cell.value})无法转换成日期. ')
 
@@ -52,7 +56,15 @@ class DateField(CellMixin, base.DateField):
 RowExtractor = base.RowExtractor
 
 
-def extract(sheet: Sheet, fields=None, default=None, headers=0, skip_headers=True):
+def format_error_message(rowx, errors):
+    error_messages = []
+    for colx, error_message in errors:
+        cell_name = cellname(rowx, colx)
+        error_messages.append(f'{cell_name} 错误: {error_message}')
+    return '\n'.join(error_messages)
+
+
+def extract(sheet: Sheet, fields=None, default=None, headers=0):
     # 为没有设置 datemode 的 DateField 设置 datemode
     datemode = sheet.book.datemode
     for field in fields:
@@ -62,8 +74,6 @@ def extract(sheet: Sheet, fields=None, default=None, headers=0, skip_headers=Tru
     row_extractor = RowExtractor(fields=fields, default=default)
     for rowx in range(sheet.nrows):
         row = sheet.row(rowx)
-        if headers:
-            headers -= 1
-            if not skip_headers:
-                yield row
+        if rowx < headers:
+            continue
         yield row_extractor.extract(row)

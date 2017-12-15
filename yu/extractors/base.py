@@ -140,3 +140,10 @@ class RowExtractor:
         except Exception as err:
             field.error = err
             return self.default
+
+
+def format_error_message(rowx, errors):
+    error_messages = []
+    for colx, error_message in errors:
+        error_messages.append(f'{rowx}:{colx} 错误: {error_message}')
+    return '\n'.join(error_messages)

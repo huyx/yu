@@ -97,6 +97,14 @@ print(Green)
 
 ## 修改记录
 
+v0.2.2
+
+* 2017-12-15 完善 extractors.excel 和 extractors.csv
+
+v0.2.1
+
+* 2017-12-11 发布里增加 README.md, data/*
+
 v0.2.0
 
 * 2017-12-10 添加 yu.extractors.excel，处理 Excel 文件的数据提取
