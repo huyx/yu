@@ -97,6 +97,14 @@ print(Green)
 
 ## 修改记录
 
+v0.4.1
+
+* 2017-12-20 完善 yu.extractors, 封装返回值
+
+v0.4.0
+
+* 2017-12-15 增加 argparseutils 模块，支持 DateType, DatetimeType
+
 v0.2.2
 
 * 2017-12-15 完善 extractors.excel 和 extractors.csv

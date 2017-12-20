@@ -24,18 +24,18 @@ class TestExcelExtract(unittest.TestCase):
         book = xlrd.open_workbook(data_filename)
         self.sheet = book.sheet_by_name('person')
 
-    def assertRowValidate(self, row, expected, error_cols=[]):
-        self.assertEqual(row[0], expected)
-        self.assertEqual([col for col, _ in row[1]], error_cols)
+    def assertResultValidate(self, result, expected, error_cols=[]):
+        self.assertEqual(result.values, expected)
+        self.assertEqual([col for col, _ in result.errors], error_cols)
 
     def test_excel_extract(self):
-        rows = list(ee.extract(self.sheet, self.fields))
+        results = list(ee.extract(self.sheet, self.fields))
 
         expected = ['岳飞', 39, 72.5, datetime.date(1103, 3, 24), '南宋抗金名将']
-        self.assertRowValidate(rows[0], expected)
+        self.assertResultValidate(results[0], expected)
 
         expected = [None, 55, None, datetime.date(1068, 8, 1), '金朝开国皇帝']
-        self.assertRowValidate(rows[1], expected, [0, 3])
+        self.assertResultValidate(results[1], expected, [1, 4])
 
         expected = ['完颜宗弼', 50, 81.3, None, '完颜阿骨打四子,也称金兀术']
-        self.assertRowValidate(rows[2], expected, [4])
+        self.assertResultValidate(results[2], expected, [5])

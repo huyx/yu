@@ -135,13 +135,13 @@ class TestRowExtractor(unittest.TestCase):
 
     def test_normal_row(self):
         row = ['岳飞', '汉', '39', '72.5', '1103-03-24', '南宋抗金名将']
-        result, errors = self.row_extractor.extract(row)
-        self.assertEqual(result, ['岳飞', 39, 72.5, datetime.date(1103, 3, 24), '南宋抗金名将'])
-        self.assertEqual(errors, [])
+        result = self.row_extractor.extract(row)
+        self.assertEqual(result.values, ['岳飞', 39, 72.5, datetime.date(1103, 3, 24), '南宋抗金名将'])
+        self.assertEqual(result.errors, [])
 
     def test_invalid_row(self):
         row = ['完颜阿骨打', '女真', '55', '805', '1068-8-01', '金朝开国皇帝']
-        result, errors = self.row_extractor.extract(row)
+        result = self.row_extractor.extract(row)
 
-        self.assertEqual(result, [None, 55, None, datetime.date(1068, 8, 1), '金朝开国皇帝'])
-        self.assertEqual([col for col, _ in errors], [0, 3])
+        self.assertEqual(result.values, [None, 55, None, datetime.date(1068, 8, 1), '金朝开国皇帝'])
+        self.assertEqual([col for col, _ in result.errors], [1, 4])

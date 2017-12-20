@@ -1,3 +1,4 @@
+import collections
 import datetime
 import re
 from ast import literal_eval
@@ -9,6 +10,7 @@ NOTSET = object()
 
 class FieldExtractor:
     error = None
+    notice = None
 
     def __init__(self, default=NOTSET, converter=None, validator=None):
         self.default = default
@@ -26,7 +28,7 @@ class FieldExtractor:
         try:
             return self.convert(value)
         except Exception as err:
-            self.error = err
+            self.notice = str(err)
             return self.default
 
     def convert(self, value):
@@ -108,6 +110,9 @@ class DateField(FieldExtractor):
         return datetime.datetime.strptime(value, date_format).date()
 
 
+Result = collections.namedtuple('Result', 'values, errors, notices')
+
+
 class RowExtractor:
     fields: list = None
 
@@ -117,22 +122,28 @@ class RowExtractor:
         self.default = default
 
     def extract(self, row):
-        result = []
+        values = []
         errors = []
+        notices = []
 
-        for col, (field, value) in enumerate(zip(self.fields, row)):
+        for col, (field, value) in enumerate(zip(self.fields, row), 1):
             if isinstance(field, SkipField):
                 continue
 
             value = self.extract_field(field, value)
-            result.append(value)
+            values.append(value)
 
             # 保存并清除 field 中的错误
             if field.error:
                 errors.append((col, field.error))
                 field.error = None
 
-        return result, errors
+            # 保存并清除 notice
+            if field.notice:
+                notices.append(field.notice)
+                field.notice = None
+
+        return Result(values, errors, notices)
 
     def extract_field(self, field, value):
         try:
