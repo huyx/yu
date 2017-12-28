@@ -53,7 +53,6 @@ class TestIntegerField(unittest.TestCase):
         self.assertAlmostEqual(field.extract('N/A'), 8)
 
     def test_without_use_eval(self):
-        """use_eval 为 False"""
         field = be.IntegerField()
 
         # 不能处理十六进制、八进制、二进制等

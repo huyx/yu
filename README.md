@@ -95,7 +95,38 @@ print(Red)
 print(Green)
 ```
 
+## formula
+
+用法：
+
+```python
+# 定义公式
+try:
+    面积公式 = Formula('面积 = 长 * 宽', '长方形面积')
+except FormulaError as exc:
+    print(exc)
+
+# 进行计算
+context = {
+    '长': 16,
+    '宽': 15,
+}
+try:
+    面积公式(context)
+except FormulaError as exc:
+    print(exc)
+
+# 读取结果
+print(context['面积'])
+```
+
+
+
 ## 修改记录
+
+v0.5.0
+
+* 2017-12-28 添加 yu.formula
 
 v0.4.1
 
